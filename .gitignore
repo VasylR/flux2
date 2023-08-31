@@ -24,3 +24,6 @@ testbin/
 
 # Docs
 site/
+generate-image-pull-secret.sh
+.vscode/launch.json
+cmd/flux/__debug_bin776193456
