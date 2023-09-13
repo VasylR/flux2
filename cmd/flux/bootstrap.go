@@ -51,14 +51,14 @@ type bootstrapFlags struct {
 	registry        string
 	imagePullSecret string
 
-	secretName     string
-	tokenAuth      bool
-	keyAlgorithm   flags.PublicKeyAlgorithm
-	keyRSABits     flags.RSAKeyBits
-	keyECDSACurve  flags.ECDSACurve
-	sshHostname    string
-	caFile         string
-	privateKeyFile string
+	secretName           string
+	tokenAuth            bool
+	keyAlgorithm         flags.PublicKeyAlgorithm
+	keyRSABits           flags.RSAKeyBits
+	keyECDSACurve        flags.ECDSACurve
+	sshHostname          string
+	caFile               string
+	privateKeyFile       string
 	tlsClientKey         string
 	tlsClientCertificate string
 
@@ -121,10 +121,8 @@ func init() {
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.sshHostname, "ssh-hostname", "", "SSH hostname, to be used when the SSH host differs from the HTTPS one")
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.caFile, "ca-file", "", "path to TLS CA file used for validating self-signed certificates")
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.privateKeyFile, "private-key-file", "", "path to a private key file used for authenticating to the Git SSH server")
-	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.tlsClientKey, "tls-client-key-file", "", "path to the client certificate file, which is used to authenticate the client's identity with the Web Application Firewall, such as Cloudflare's WAF.")
-	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.tlsClientCertificate, "tls-private-key-file", "", "path to the private key file, which is used to authenticate the client's identity with the Web Application Firewall, such as Cloudflare's WAF.")
-
-
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.tlsClientCertificate, "tls-client-key-file", "", "path to the client certificate file, which is used to authenticate the client's identity with the Web Application Firewall, such as Cloudflare's WAF. The tls-private-key-file parameter is required. Should not be used together with ca-file")
+	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.tlsClientKey, "tls-private-key-file", "", "path to the private key file, which is used to authenticate the client's identity with the Web Application Firewall, such as Cloudflare's WAF. The tls-client-key-file parameter is required. Should not be used together with ca-file")
 
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.authorName, "author-name", "Flux", "author name for Git commits")
 	bootstrapCmd.PersistentFlags().StringVar(&bootstrapArgs.authorEmail, "author-email", "", "author email for Git commits")

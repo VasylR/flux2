@@ -113,6 +113,8 @@ func init() {
 }
 
 func bootstrapGitLabCmdRun(cmd *cobra.Command, args []string) error {
+	var clientKey, clientCert []byte
+
 	glToken := os.Getenv(glTokenEnvVar)
 	if glToken == "" {
 		var err error
@@ -166,12 +168,33 @@ func bootstrapGitLabCmdRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Check that both tlsClientKey and tlsClientCertificate are specified
+	if bootstrapArgs.tlsClientKey == "" && bootstrapArgs.tlsClientCertificate == "" {
+		return fmt.Errorf("both tlsClientKey and tlsClientCertificate must be specified")
+	} else {
+		// Load tlsClientKey
+		clientKey, err = ReadTLSCertificate(bootstrapArgs.tlsClientKey)
+		if err != nil {
+			return fmt.Errorf("failed to load tlsClientKey: %v", err)
+
+		}
+
+		// Load tlsClientCertificate
+		clientCert, err = ReadTLSCertificate(bootstrapArgs.tlsClientCertificate)
+		if err != nil {
+			return fmt.Errorf("failed to load tlsClientCertificate: %v", err)
+
+		}
+	}
+
 	// Build GitLab provider
 	providerCfg := provider.Config{
-		Provider: provider.GitProviderGitLab,
-		Hostname: gitlabArgs.hostname,
-		Token:    glToken,
-		CaBundle: caBundle,
+		Provider:             provider.GitProviderGitLab,
+		Hostname:             gitlabArgs.hostname,
+		Token:                glToken,
+		CaBundle:             caBundle,
+		TlsClientKey:         clientKey,
+		TlsClientCertificate: clientCert,
 	}
 	// Workaround for: https://github.com/fluxcd/go-git-providers/issues/55
 	if hostname := providerCfg.Hostname; hostname != glDefaultDomain &&
@@ -193,10 +216,12 @@ func bootstrapGitLabCmdRun(cmd *cobra.Command, args []string) error {
 
 	clientOpts := []gogit.ClientOption{gogit.WithDiskStorage(), gogit.WithFallbackToDefaultKnownHosts()}
 	gitClient, err := gogit.NewClient(tmpDir, &git.AuthOptions{
-		Transport: git.HTTPS,
-		Username:  gitlabArgs.owner,
-		Password:  glToken,
-		CAFile:    caBundle,
+		Transport:            git.HTTPS,
+		Username:             gitlabArgs.owner,
+		Password:             glToken,
+		CAFile:               caBundle,
+		TlsClientKey:         clientKey,
+		TlsClientCertificate: clientCert,
 	}, clientOpts...)
 	if err != nil {
 		return fmt.Errorf("failed to create a Git client: %w", err)
@@ -254,6 +279,10 @@ func bootstrapGitLabCmdRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if len(clientKey) > 0 && len(clientCert) > 0 {
+		secretOpts.KeyFile = clientKey
+		secretOpts.CertFile = clientCert
+	}
 	// Sync manifest config
 	syncOpts := sync.Options{
 		Interval:          gitlabArgs.interval,

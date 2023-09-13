@@ -44,4 +44,8 @@ type Config struct {
 
 	// CABunle contains the CA bundle to use for the client.
 	CaBundle []byte
+
+	// TLS client certificate and key for tls authentication.
+	TlsClientKey         []byte
+	TlsClientCertificate []byte
 }

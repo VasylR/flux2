@@ -55,6 +55,9 @@ func BuildGitProvider(config Config) (gitprovider.Client, error) {
 		if config.CaBundle != nil {
 			opts = append(opts, gitprovider.WithCustomCAPostChainTransportHook(config.CaBundle))
 		}
+		if config.TlsClientCertificate != nil && config.TlsClientKey != nil && config.CaBundle == nil {
+			opts = append(opts, gitprovider.WithClientCertKey(config.TlsClientCertificate, config.TlsClientKey))
+		}
 		if client, err = gitlab.NewClient(config.Token, "", opts...); err != nil {
 			return nil, err
 		}
